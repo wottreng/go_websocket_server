@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <title>test ws</title>
+    <script>
+        window.addEventListener("load", function (evt) {
+
+            var output = document.getElementById("output");
+            var input = document.getElementById("input");
+            var ws;
+            var api_key = "sd8f70-asd89";
+            let topic = "test";
+            let ws_root_url = "{{.}}"
+
+            var print = function (message) {
+                var d = document.createElement("div");
+                d.textContent = message;
+                output.appendChild(d);
+                output.scroll(0, output.scrollHeight);
+            };
+
+            document.getElementById("open").onclick = function (evt) {
+                if (ws) {
+                    return false;
+                }
+                console.log(`connecting to ${ws_root_url}/?topic=${topic}`);
+                ws = new WebSocket(`${ws_root_url}/?topic=${topic}&api_key=${api_key}`); // ws://localhost:8080/echo
+                ws.onopen = function (evt) {
+                    print("OPEN");
+                }
+                ws.onclose = function (evt) {
+                    print("CLOSE");
+                    ws = null;
+                }
+                ws.onmessage = function (evt) {
+                    print("RESPONSE: " + evt.data);
+                }
+                ws.onerror = function (evt) {
+                    print("ERROR: " + evt.data);
+                }
+                return false;
+            };
+
+            document.getElementById("send").onclick = function (evt) {
+                if (!ws) {
+                    return false;
+                }
+                console.log("sending: " + input.value);
+                print("SEND: " + input.value);
+                ws.send(input.value);
+                return false;
+            };
+
+            document.getElementById("close").onclick = function (evt) {
+                if (!ws) {
+                    return false;
+                }
+                ws.close(1000);
+                return false;
+            };
+
+            document.getElementById("topic").addEventListener("change", async()=>{
+                topic = document.getElementById("topic").value;
+                console.log(`topic: ${topic}`)
+            } )
+
+        });
+    </script>
+</head>
+<body>
+<table>
+    <tr>
+        <td valign="top" width="50%">
+            <p>Click "Open" to create a connection to the server,
+                "Send" to send a message to the server and "Close" to close the connection.
+                You can change the message and send multiple times.
+            </p>
+            <form>
+                <button id="open">Open</button>
+                <button id="close">Close</button>
+                <input id="topic" type="text" value="test">
+                <input id="input" type="text" value="data{x:3}">
+                <button id="send">Send</button>
+            </form>
+        </td>
+        <td valign="top" width="50%">
+            <div id="output" style="max-height: 70vh;overflow-y: scroll;"></div>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
